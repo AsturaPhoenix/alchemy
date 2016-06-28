@@ -1,0 +1,62 @@
+// The first symbol defined in a language is the default start symbol. Symbols
+// may have an arguments list, with defaults. Additionally, any symbol can be
+// passed named arguments. Arguments are inherited from symbols to their
+// patterns.
+language(level = 0): indentBlock(level, languageElement)
+languageElement: private? (token|tokens|translation|namespace)
+private token private: 'private'
+token: 'token' name ':' pattern
+tokens: 'tokens' [name, min = 1]
+
+indentBlock(level, element): [ /    |\t/{level}  element, /\n+/, 1 ]
+
+translation: name params? ':' pattern ?> '=' definition
+name: identifier
+params: '(' [ param, ',' ] ')'
+param: name ?> '=' default: arg
+definition: expression(level = level + 1)|indentBlock(level + 1, expression) 
+
+namespace: 'namespace' name ':' language(level + 1)
+
+namespace args:
+	// A note on spec duck-typing: scalar patterns, lists, and maps are duck-typed,
+	// with scalars allowing an identity [0] indexer and .keys[...] returning
+	// empties if not applicable. 
+	args(spec): '(' argList ')'
+	argList(spec): positionalArgs | namedArgs | positionalArgs ',' namedArgs
+	positionalArgs: [ *spec.keys[index]: spec[index], ',', 1 ]
+	namedArgs: [ name '=' *name: spec[name], ',', 1 ]
+
+namespace pattern:
+	pattern: prefixQuantifier? (name ':')? disjunction pattern?
+	disjunction: [ term, '|', 1 ]
+	term: (ref: name patternArgs?)|list|literal|regex|group quantifier?
+	patternArgs: args({ *: pattern|expression|patternMap })
+	namespace patternMap:
+		patternMap: '{' content '}'
+		content: [ key ':' pattern, ',']
+		key: name|default
+		token default: '*'
+	group: '(' pattern ')'
+	quantifier: '?'|'+'|'*'|('{' (min: wholeNumber) ('-' max: positiveInteger)? '}') =
+		switch (quantifier):
+			'?': { 'min': 0, 'max': 1 }
+			'+': { 'min': 1, 'max': +inf }
+			'*': { 'min': 0, 'max': +inf }
+			default:
+				max ?= min
+				assert max >= min
+				{ 'min': min, 'max': max }
+	prefixQuantifier: quantifier '>'
+	list: '[' args.argList({ term: pattern,
+							 delimiter: pattern,
+							 min: wholeNumber,
+							 max: positiveInteger }) ']'
+		max >= min
+
+namespace expression:
+	expression: fnCall|group|switch
+	fnCall: parseDec
+	group: '(' expression ')'
+	switch: 'switch (' name '):' [ case: expression ':' definition, /\n+/ 1 ]
+	parseDec: 'parseDec' args(expression)

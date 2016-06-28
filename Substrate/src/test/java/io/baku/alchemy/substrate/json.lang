@@ -1,0 +1,29 @@
+value: object|array|scalar
+object: '{' [ string ':' value, ',' ] '}' = { string: value for list }
+array: '[' [ value, ',' ] ']'
+
+tokens true false null
+
+scalar: string|number|boolean|null
+boolean: true|false
+
+number: int frac? exp? = parseDec(number)
+private int: /-?(\d|[1-9]\d+)/
+private frac: /\.\d+/
+private exp: /(e|E)[+-]?\d+/
+
+string: '"' [ character|escapeSequence ] '"' = join(list)
+
+character: /[^"\\\n]/
+
+escapeSequence: '\\' (escape|unicodeEscape)
+
+private escape: /["\\\/bfnrt]/ =
+	switch (escape):
+		'b': '\b'
+		'f': '\f'
+		'n': '\n'
+		'r': '\r'
+		't': '\t'
+
+private unicodeEscape: 'u' hex:/[0-9a-fA-F]{4}/ = chr(parseHex(hex))

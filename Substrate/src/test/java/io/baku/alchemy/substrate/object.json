@@ -1,0 +1,8 @@
+{
+    "key": "Hello",
+    "value": [
+        "World",
+        42,
+        true
+    ]    
+}
