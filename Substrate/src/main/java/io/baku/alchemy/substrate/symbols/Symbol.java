@@ -8,6 +8,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterables;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -60,6 +62,16 @@ public class Symbol {
             }
         }
         return builder.toString();
+    }
+    
+    public static List<Symbol> filterType(final Collection<Symbol> symbols, final String type) {
+    	return symbols.stream()
+    			.filter(s -> type.equals(s.getType()))
+    			.collect(Collectors.toList());
+    }
+    
+    public static Symbol getByType(final Collection<Symbol> symbols, final String type) {
+    	return Iterables.getOnlyElement(filterType(symbols, type));
     }
     
     public static String stringValue(final Collection<Symbol> symbols) {

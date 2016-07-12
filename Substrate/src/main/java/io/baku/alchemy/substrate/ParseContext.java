@@ -18,7 +18,7 @@ public class ParseContext {
     
     public static Fsa virtualTokenizer(final CharPredicate whitespace) {
         final Fsa negTerm = new Fsa()
-                .append(CharPredicate.IS_IDENTIFIER)
+                .append(CharPredicate.IS_IDENTIFIER_CHAR)
                 .or(whitespace);
         return new Fsa()
                 .append(CharPredicate.IS_WHITESPACE).repeat(null, true)

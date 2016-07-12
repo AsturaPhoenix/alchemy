@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import io.baku.alchemy.substrate.fsa.Fsa;
 import io.baku.alchemy.substrate.symbols.CharSymbol;
 import io.baku.alchemy.substrate.symbols.Symbol;
 
@@ -27,8 +28,12 @@ public abstract class CharPredicate extends SymbolPredicate {
     public static final CharPredicate
             IS_WHITESPACE = CharPredicate.createCharPredicate(WHITESPACE_MATCH_SPACE,
                     Character::isWhitespace),
-            IS_IDENTIFIER = CharPredicate.createCharPredicate(IDENTIFIER_MATCH_SPACE,
+            IS_IDENTIFIER_CHAR = CharPredicate.createCharPredicate(IDENTIFIER_MATCH_SPACE,
                     Character::isJavaIdentifierPart);
+    
+    public static final Fsa IS_IDENTIFIER = new Fsa()
+    		.append(CharPredicate.createCharPredicate(IDENTIFIER_MATCH_SPACE - 10, Character::isJavaIdentifierStart))
+    		.append(new Fsa().append(IS_IDENTIFIER_CHAR).kleeneStar());
 
     public static CharPredicate matching(final int codePoint) {
         return new CharPredicate(1) {
