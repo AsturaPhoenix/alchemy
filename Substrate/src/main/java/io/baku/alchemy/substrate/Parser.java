@@ -44,10 +44,6 @@ public class Parser {
                 continue;
             }
             
-            /*System.out.println(state.getCostEstimate() + "; " + state.getErrors().size() + "-" + state.getInputDepth() + "/" + state.getEntropy()
-            	+ "@" + state.getMatchStart()
-            	+ ": " + (state.hasPendingRule()? state.getPendingRule().getName() + " - " : "") + state.getInputScanner());*/
-            
             if (state.getErrors().size() > MAX_ERRORS) {
                 throw new IllegalArgumentException("Too many errors");
             }

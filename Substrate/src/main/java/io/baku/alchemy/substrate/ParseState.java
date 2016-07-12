@@ -53,13 +53,6 @@ public class ParseState {
     int errorCost;
     ImmutableList<ParseError> errors;
     float entropy;
-    long stateDepth;
-    /**
-     * Symbol depth, not including predicate graphs within rules
-     * ({@code getPendingRule().getGraphWalkState().getDepth()}).
-     */
-    long symbolDepth;
-    long inputDepth;
     
     private static @Nullable Node nodeFromVt(final @Nullable Fsa fsa) {
     	return fsa == null? null : fsa.getStart();
@@ -67,8 +60,7 @@ public class ParseState {
     
     public ParseState(final ParseContext context, final List<? extends Symbol> input) {
     	this(context, new Scanner.Simple<>(ImmutableList.copyOf(input)), null, Phase.BEFORE_TOKEN,
-    			0, -1, -1, nodeFromVt(context.getVirtualTokenizer()), 0, ImmutableList.of(), 0, 0,
-    			0, 0);
+    			0, -1, -1, nodeFromVt(context.getVirtualTokenizer()), 0, ImmutableList.of(), 0);
     }
     
     @Value
@@ -104,8 +96,7 @@ public class ParseState {
     }
 
     private @NonNull ParseState withFailedMatch(final Scanner<Symbol> nextScanner,
-    		final int errorCostDelta, final ParseError error, final Node nextNode,
-    		final long nextStateDepth) {
+    		final int errorCostDelta, final ParseError error, final Node nextNode) {
         return new ParseState(context,
                 nextScanner,
                 pendingRule,
@@ -116,10 +107,7 @@ public class ParseState {
                 nextNode,
                 errorCost + errorCostDelta,
                 ImmutableList.<ParseError>builder().addAll(errors).add(error).build(),
-                entropy + 1,
-                nextStateDepth,
-                symbolDepth,
-                inputDepth + 1);
+                entropy + 1);
     }
     
     private ParseState produce() {
@@ -138,7 +126,7 @@ public class ParseState {
         return new ParseState(context,
                 new Scanner.Simple<>(repl, newCursor),
                 null, phase, newCursor, -1, -1,
-                null, errorCost, errors, entropy, stateDepth, symbolDepth + 1, inputDepth);
+                null, errorCost, errors, entropy);
     }
 
     /**
@@ -160,7 +148,7 @@ public class ParseState {
         	if (phase == Phase.TOKEN && vt != null) {
         		builder.add(new ParseState(context, inputScanner, pendingRule, Phase.AFTER_TOKEN,
         				matchStart, contentStart, inputScanner.getCursor(), vt.getStart(),
-        				errorCost, errors, entropy, stateDepth, symbolDepth, inputDepth));
+        				errorCost, errors, entropy));
         	} else if (phase != Phase.BEFORE_TOKEN) {
         		builder.add(produce());
         	}
@@ -172,33 +160,30 @@ public class ParseState {
             if (p == null) {
                 //lambda; just add it on
                 builder.add(new ParseState(context, inputScanner, pendingRule, phase, matchStart,
-                		contentStart, contentEnd, e.getTarget(), errorCost, errors, entropy,
-                		stateDepth + 1, symbolDepth, inputDepth));
+                		contentStart, contentEnd, e.getTarget(), errorCost, errors, entropy));
             } else {
                 if (p.test(inputScanner)) {
                     builder.add(new ParseState(context, inputScanner.advance(p.getWidth(), false),
                             pendingRule, phase, matchStart, contentStart, contentEnd,
-                            e.getTarget(), errorCost, errors, entropy + p.getEntropy(),
-                            stateDepth + 1, symbolDepth, inputDepth + p.getWidth()));
+                            e.getTarget(), errorCost, errors, entropy + p.getEntropy()));
                 } else if (inputScanner.hasCurrent()) {
                 	// TODO(rosswang): What about errors on lookarounds?
                     builder.add(withFailedMatch(inputScanner.advance(1, false),
-                    		3, new ParseError(inputScanner.getCurrent(), p),
-                    		e.getTarget(), stateDepth + 1));
+                    		3, new ParseError(inputScanner.getCurrent(), p), e.getTarget()));
                 }
                 
                 // expected, not found
                 final Scanner<Symbol> enfScanner = context.getVirtualTokenizer() == null?
                 		null : context.getVirtualTokenizer().consume(inputScanner);
                 builder.add(withFailedMatch(enfScanner == null? inputScanner : enfScanner,
-                		2, new ParseError(null, p), e.getTarget(), stateDepth + 1));
+                		2, new ParseError(null, p), e.getTarget()));
             }
         }
         
         if (inputScanner.hasCurrent()) {
             // found, not expected
             builder.add(withFailedMatch(inputScanner.advance(1, false), 2,
-            		new ParseError(inputScanner.getCurrent(), null), fsaNode, stateDepth));
+            		new ParseError(inputScanner.getCurrent(), null), fsaNode));
         }
         
         return builder.build();
@@ -210,8 +195,7 @@ public class ParseState {
     public ParseState advance() {
     	final Scanner<Symbol> advanced = inputScanner.advance();
         return new ParseState(context, advanced, null, Phase.BEFORE_TOKEN, advanced.getCursor(),
-        		-1, -1, nodeFromVt(context.getVirtualTokenizer()), errorCost, errors, entropy,
-        		stateDepth, symbolDepth, inputDepth + 1);
+        		-1, -1, nodeFromVt(context.getVirtualTokenizer()), errorCost, errors, entropy);
     }
 
     public @NonNull ParseState withPendingRule(@NonNull final Rule rule) {
@@ -220,7 +204,6 @@ public class ParseState {
             		pendingRule + " is pending");
         }
         return new ParseState(context, inputScanner, rule, Phase.TOKEN, matchStart,
-        		inputScanner.getCursor(), -1, rule.getFsa().getStart(), errorCost, errors, entropy,
-        		stateDepth, symbolDepth, inputDepth);
+        		inputScanner.getCursor(), -1, rule.getFsa().getStart(), errorCost, errors, entropy);
     }
 }
