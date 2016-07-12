@@ -11,6 +11,7 @@ import java.util.stream.Collector;
 
 import io.baku.alchemy.substrate.Scanner;
 import io.baku.alchemy.substrate.predicates.CharPredicate;
+import io.baku.alchemy.substrate.predicates.KeywordPredicate;
 import io.baku.alchemy.substrate.predicates.ParsePredicate;
 import io.baku.alchemy.substrate.predicates.TypePredicate;
 import io.baku.alchemy.substrate.predicates.ZeroWidthAssertion;
@@ -47,6 +48,10 @@ public class Fsa implements Cloneable {
     
     public Fsa appendType(final String type, final float entropy) {
         return append(new TypePredicate(type, entropy));
+    }
+    
+    public Fsa appendKeyword(final String keyword) {
+        return append(new KeywordPredicate(keyword));
     }
     
     public Fsa append(final int codePoint) {
@@ -108,6 +113,10 @@ public class Fsa implements Cloneable {
     
     public Fsa orType(final String type, final float entropy) {
         return or(new TypePredicate(type, entropy));
+    }
+    
+    public Fsa orKeyword(final String keyword) {
+        return or(new KeywordPredicate(keyword));
     }
     
     public Fsa optional() {

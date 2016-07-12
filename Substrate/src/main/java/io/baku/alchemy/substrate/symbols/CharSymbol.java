@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
 public class CharSymbol extends Symbol {
-    public static final String TYPE = "character"; 
+    public static final String TYPE = "character";
     
     public static List<CharSymbol> fromString(final String str) {
         return str.codePoints()

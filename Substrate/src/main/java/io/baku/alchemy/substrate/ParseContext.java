@@ -14,13 +14,17 @@ import lombok.Value;
 @Value
 @RequiredArgsConstructor
 public class ParseContext {
-	private static final Fsa DEFAULT_VT_NEGTERM = new Fsa()
-			.append(CharPredicate.IS_IDENTIFIER)
-			.or(CharPredicate.IS_WHITESPACE);
-    public static final Fsa DEFAULT_VIRTUAL_TOKENIZER = new Fsa()
-            .append(CharPredicate.IS_WHITESPACE).repeat(null, true)
-            .or(new ZeroWidthAssertion(false, true, DEFAULT_VT_NEGTERM))
-            .or(new ZeroWidthAssertion(false, false, DEFAULT_VT_NEGTERM));
+    public static final Fsa DEFAULT_VIRTUAL_TOKENIZER = virtualTokenizer(CharPredicate.IS_WHITESPACE);
+    
+    public static Fsa virtualTokenizer(final CharPredicate whitespace) {
+        final Fsa negTerm = new Fsa()
+                .append(CharPredicate.IS_IDENTIFIER)
+                .or(whitespace);
+        return new Fsa()
+                .append(CharPredicate.IS_WHITESPACE).repeat(null, true)
+                .or(new ZeroWidthAssertion(false, true, negTerm))
+                .or(new ZeroWidthAssertion(false, false, negTerm)); 
+    }
     
     /**
      * FSA automatically added before and after every rule. This typically includes whitespace
@@ -29,7 +33,11 @@ public class ParseContext {
     Fsa virtualTokenizer;
     Set<Rule> rules;
     
+    public ParseContext(final Fsa virtualTokenizer, final Rule... rules) {
+        this(virtualTokenizer, new HashSet<>(Arrays.asList(rules)));
+    }
+    
     public ParseContext(final Rule... rules) {
-        this(DEFAULT_VIRTUAL_TOKENIZER, new HashSet<>(Arrays.asList(rules)));
+        this(DEFAULT_VIRTUAL_TOKENIZER, rules);
     }
 }
