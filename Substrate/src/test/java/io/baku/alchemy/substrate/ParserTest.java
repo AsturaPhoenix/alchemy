@@ -36,14 +36,14 @@ public class ParserTest {
 		                 .repeat();
 		 
 		 JSON = new ParseContext(
-		         new Rule("string", Symbol::stringValue, new Fsa()
+		         new Rule("string", new Fsa()
 		                 .append('"')
 		                 .append(new Fsa()
 		                         .append(normalChar)
 		                         .or(escapeSeq)
 		                         .kleeneStar())
-		                 .append('"')),
-		         new Rule("number", x -> Double.parseDouble(Symbol.stringValue(x)), new Fsa()
+		                 .append('"'), Symbol::stringValue),
+		         new Rule("number", new Fsa()
 		                 .or('-')
 		                 .append(CharPredicate.range('1', '9'))
 		                 .append(digits)
@@ -58,19 +58,19 @@ public class ParserTest {
 		                                 .append(CharPredicate.anyOf("+-"))
 		                                 .optional())
 		                         .append(digits)
-		                         .optional())),
-		         new Rule("value", x -> x.get(0).getValue(), new Fsa()
-		                 .appendType("string", 1)
-		                 .orType("number", 1)
-		                 .orType("object", 1)
-		                 .orType("array", 1)
-		                 .orType("true", 0)
-		                 .orType("false", 0)
-		                 .orType("null", 0)),
+		                         .optional()), x -> Double.parseDouble(Symbol.stringValue(x))),
+		         new Rule("value", new Fsa()
+		                 .appendType("string")
+		                 .orType("number")
+		                 .orType("object")
+		                 .orType("array")
+		                 .orKeyword("true")
+		                 .orKeyword("false")
+		                 .orKeyword("null"), x -> x.get(0).getValue()),
 		         new Rule("entry", new Fsa()
-		                 .appendType("string", 1)
+		                 .appendType("string")
 		                 .append(':')
-		                 .appendType("value", 1)),
+		                 .appendType("value")),
 		         new Rule("object", new Fsa().fencedList('{', "entry", ',', '}')),
 		         new Rule("array", new Fsa().fencedList('[', "value", ',', ']')),
 		         TextRules.keyword("true", true),

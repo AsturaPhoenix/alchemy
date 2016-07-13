@@ -46,8 +46,8 @@ public class Fsa implements Cloneable {
         return this;
     }
     
-    public Fsa appendType(final String type, final float entropy) {
-        return append(new TypePredicate(type, entropy));
+    public Fsa appendType(final String type) {
+        return append(new TypePredicate(type));
     }
     
     public Fsa appendKeyword(final String keyword) {
@@ -111,8 +111,8 @@ public class Fsa implements Cloneable {
         return or(CharPredicate.matching(codePoint));
     }
     
-    public Fsa orType(final String type, final float entropy) {
-        return or(new TypePredicate(type, entropy));
+    public Fsa orType(final String type) {
+        return or(new TypePredicate(type));
     }
     
     public Fsa orKeyword(final String keyword) {
@@ -167,7 +167,7 @@ public class Fsa implements Cloneable {
             final int delimiterCodePoint, final int closingCodePoint) {
         return append(openingCodePoint)
                 .append(new Fsa()
-                        .appendType(itemType, 1)
+                        .appendType(itemType)
                         .kleeneStar(delimiterCodePoint))
                 .append(closingCodePoint);
     }

@@ -95,7 +95,7 @@ public class FsaTest {
                 .append(new ZeroWidthAssertion(false, true,
                         new Fsa().append("Goodbye")))
                 .append(new Fsa()
-                        .append(new TypePredicate(CharSymbol.TYPE, 1))
+                        .append(new TypePredicate(CharSymbol.TYPE))
                         .repeat())
                 .append("!")
                 .eof();

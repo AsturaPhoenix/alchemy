@@ -1,5 +1,7 @@
 package io.baku.alchemy.substrate.predicates;
 
+import java.util.Objects;
+
 import io.baku.alchemy.substrate.symbols.KeywordSymbol;
 import io.baku.alchemy.substrate.symbols.Symbol;
 import lombok.EqualsAndHashCode;
@@ -17,11 +19,11 @@ public class KeywordPredicate extends SymbolPredicate {
 
     @Override
     protected boolean test(final Symbol s) {
-        return s.getType().equals(KeywordSymbol.TYPE) && keyword.equals(s.getValue());
+        return s.getType().equals(KeywordSymbol.TYPE) && keyword.equals(((KeywordSymbol)s).getKeyword());
     }
     
     @Override
     public String toString() {
-        return keyword;
+        return Objects.toString(keyword);
     }
 }

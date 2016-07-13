@@ -9,12 +9,8 @@ import lombok.Value;
 public class TypePredicate extends SymbolPredicate {
     private final String type;
     
-    /**
-     * @param entropy the entropy of this type match, typically 0 for semantic types and 1 for
-     *  value types. {@code TypePredicate}s for the same type should have the same entropy.
-     */
-    public TypePredicate(final String type, final float entropy) {
-        super(entropy);
+    public TypePredicate(final String type) {
+        super(0);
         this.type = type;
     }
 

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public class Symbol {
+    @FunctionalInterface
     public interface Production extends Function<List<Symbol>, Symbol> { }
     
     private final String type;

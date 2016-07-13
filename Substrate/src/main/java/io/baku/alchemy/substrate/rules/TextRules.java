@@ -8,11 +8,13 @@ import lombok.experimental.UtilityClass;
 public class TextRules {
     public static Rule keyword(final String keyword) {
         return new Rule("keyword: " + keyword,
-                x -> new KeywordSymbol(keyword, x),
+                x -> new KeywordSymbol(keyword, keyword, x),
                 new Fsa().append(keyword));
     }
     
     public static Rule keyword(final String keyword, final Object value) {
-        return new Rule("keyword: " + keyword, x -> value, new Fsa().append(keyword));
+        return new Rule("keyword: " + keyword,
+                x -> new KeywordSymbol(keyword, value, x),
+                new Fsa().append(keyword));
     }
 }
