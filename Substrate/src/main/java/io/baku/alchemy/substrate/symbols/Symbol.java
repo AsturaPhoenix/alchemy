@@ -4,21 +4,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterables;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
 public class Symbol {
-    @FunctionalInterface
-    public interface Production extends Function<List<Symbol>, Symbol> { }
-    
     private final String type;
     private final Object value;
     private final List<Symbol> children;
@@ -47,6 +44,10 @@ public class Symbol {
         return getValue() == null? getType() : getType() + "(" + getValue() + ")";
     }
     
+    public String toDiagnosticString() {
+    	return getValue() == null? getType() : getValue().toString();
+    }
+    
     public String printTree() {
         return printTree(0);
     }
@@ -73,6 +74,10 @@ public class Symbol {
     
     public static Symbol getByType(final Collection<Symbol> symbols, final String type) {
     	return Iterables.getOnlyElement(filterType(symbols, type));
+    }
+    
+    public static Symbol getByType(final Collection<Symbol> symbols, final String type, final @Nullable Symbol defaultValue) {
+    	return Iterables.getOnlyElement(filterType(symbols, type), defaultValue);
     }
     
     public static String stringValue(final Collection<Symbol> symbols) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import com.google.common.collect.ImmutableList;
 
@@ -118,12 +119,14 @@ public class ParseState {
                 		contentEnd : inputScanner.getCursor()),
                 repl = new ArrayList<>(seq.size() - inputScanner.getCursor() + matchStart);
         repl.addAll(seq.subList(0, matchStart));
-        repl.add(pendingRule.getProduction().apply(content));
+        repl.addAll(pendingRule.getProduction().apply(content));
         repl.addAll(seq.subList(inputScanner.getCursor(), seq.size()));
         
         final int newCursor = (matchStart + 1) % repl.size();
         
-        return new ParseState(context,
+        final UnaryOperator<ParseContext> sideEffects = pendingRule.getSideEffects();
+        
+        return new ParseState(sideEffects == null? context : sideEffects.apply(context),
                 new Scanner.Simple<>(repl, newCursor),
                 null, phase, newCursor, -1, -1,
                 null, errorCost, errors, entropy);

@@ -1,0 +1,41 @@
+modes
+	ionian
+	dorian
+	phrygian
+	lydian
+	mixolydian
+	aeolian
+	locrian
+flavors
+	major
+	minor
+		natural
+		melodic
+		harmonic
+roots
+	tonic
+	supertonic
+	mediant
+	subdominant
+	dominant
+	submediant
+	leading tone
+solfege
+	do
+		di
+	re
+		ra
+		ri
+	mi
+		me
+	fa
+		fi
+	sol
+		se
+		si
+	la
+		le
+		li
+	ti
+		te
+	

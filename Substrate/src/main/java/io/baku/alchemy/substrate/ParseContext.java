@@ -6,6 +6,7 @@ import java.util.Set;
 
 import io.baku.alchemy.substrate.fsa.Fsa;
 import io.baku.alchemy.substrate.predicates.CharPredicate;
+import io.baku.alchemy.substrate.predicates.ParsePredicate;
 import io.baku.alchemy.substrate.predicates.ZeroWidthAssertion;
 import io.baku.alchemy.substrate.rules.Rule;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +17,18 @@ import lombok.Value;
 public class ParseContext {
     public static final Fsa DEFAULT_VIRTUAL_TOKENIZER = virtualTokenizer(CharPredicate.IS_WHITESPACE);
     
-    public static Fsa virtualTokenizer(final CharPredicate whitespace) {
+    public static Fsa virtualTokenizer(final Fsa whitespace) {
         final Fsa negTerm = new Fsa()
                 .append(CharPredicate.IS_IDENTIFIER_CHAR)
                 .or(whitespace);
         return new Fsa()
-                .append(CharPredicate.IS_WHITESPACE).repeat(null, true)
+                .append(whitespace).repeat(null, true)
                 .or(new ZeroWidthAssertion(false, true, negTerm))
                 .or(new ZeroWidthAssertion(false, false, negTerm)); 
+    }
+    
+    public static Fsa virtualTokenizer(final ParsePredicate whitespace) {
+    	return virtualTokenizer(new Fsa().append(whitespace));
     }
     
     /**

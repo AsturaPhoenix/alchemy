@@ -14,9 +14,9 @@ public class ParseError {
 		if (found == null) {
 			return "Expected " + expected;
 		} else if (expected == null) {
-			return "Unexpected " + found;
+			return "Unexpected " + found.toDiagnosticString();
 		} else {
-			return "Expected " + expected + "; found " + found;
+			return "Expected " + expected + "; found " + found.toDiagnosticString();
 		}
 	}
 }

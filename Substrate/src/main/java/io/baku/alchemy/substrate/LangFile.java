@@ -1,5 +1,7 @@
 package io.baku.alchemy.substrate;
 
+import com.google.common.collect.Range;
+
 import io.baku.alchemy.substrate.fsa.Fsa;
 import io.baku.alchemy.substrate.predicates.CharPredicate;
 import io.baku.alchemy.substrate.rules.Rule;
@@ -18,6 +20,9 @@ public class LangFile {
     					.kleeneStar());
     	
     	PARSE_CONTEXT = new ParseContext(
+    			ParseContext.virtualTokenizer(new Fsa()
+    					.append(CharPredicate.IS_WHITESPACE)
+    					.orType("comment")),
                 new Rule("languageElement", new Fsa()
                         .orKeyword("private")
                         .append(new Fsa()
@@ -75,9 +80,27 @@ public class LangFile {
                 						.append('-')
                 						.appendType("pattern.quantifier.max")
                 						.optional())
-                				.append('}'))),
+                				.append('}')),
+                		x -> {
+                			switch(Symbol.stringValue(x).charAt(0)) {
+                			case '?':
+                				return Range.closed(0, 1);
+                			case '+':
+                				return Range.atLeast(1);
+                			case '*':
+                				return Range.atLeast(0);
+            				default:
+            					final Symbol min = Symbol.getByType(x, "pattern.quantifier.min");
+                				final Symbol max = Symbol.getByType(x,
+                						"pattern.quantifier.max", min);
+                				return Range.closed((int)min.getValue(), (int)max.getValue());
+                			}
+                		}),
                 Rule.alias("pattern.quantifier.min", "wholeNumber"),
                 Rule.alias("pattern.quantifier.max", "positiveInteger"),
+                new Rule("pattern.prefixQuantifier", new Fsa()
+                		.appendType("pattern.quantifier")
+                		.append('>')),
                 new Rule("wholeNumber", positiveInteger.clone().or('0'),
                 		x -> Integer.parseInt(Symbol.stringValue(x))),
                 new Rule("positiveInteger", positiveInteger,

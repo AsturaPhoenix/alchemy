@@ -27,7 +27,7 @@ public class CharSymbol extends Symbol {
     public String toString() {
     	final int codePoint = getCodePoint();
     	switch (codePoint) {
-    	case '\"':
+    	case '"':
     		return "\\\"";
     	case '\\':
     		return "\\\\";
@@ -50,6 +50,30 @@ public class CharSymbol extends Symbol {
     			return String.format("\\u%04x", codePoint);
     		} else {
     			return new String(Character.toChars(getCodePoint()));
+    		}
+    	}
+    }
+    
+    @Override
+    public String toDiagnosticString() {
+    	final int codePoint = getCodePoint();
+    	switch (codePoint) {
+    	case '\'':
+    		return "'";
+    	case '\n':
+    	case '\r':
+    		return "newline";
+    	case '\t':
+    		return "tab";
+    	default:
+    		if (codePoint == ' ') {
+    			return "' '";
+    		} else if (Character.isWhitespace(codePoint)) {
+    			return "whitespace";
+    		} else if (Character.isISOControl(codePoint)) {
+    			return "control character";
+    		} else {
+    			return "'" + new String(Character.toChars(getCodePoint())) + "'";
     		}
     	}
     }

@@ -7,14 +7,12 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class TextRules {
     public static Rule keyword(final String keyword) {
-        return new Rule("keyword: " + keyword,
-                x -> new KeywordSymbol(keyword, keyword, x),
-                new Fsa().append(keyword));
+        return Rule.withProduction("keyword: " + keyword, new Fsa().append(keyword),
+                x -> new KeywordSymbol(keyword, keyword, x));
     }
     
     public static Rule keyword(final String keyword, final Object value) {
-        return new Rule("keyword: " + keyword,
-                x -> new KeywordSymbol(keyword, value, x),
-                new Fsa().append(keyword));
+        return Rule.withProduction("keyword: " + keyword, new Fsa().append(keyword),
+                x -> new KeywordSymbol(keyword, value, x));
     }
 }

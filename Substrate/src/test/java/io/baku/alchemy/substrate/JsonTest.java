@@ -1,17 +1,9 @@
 package io.baku.alchemy.substrate;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-
-import io.baku.alchemy.substrate.Parser.ParseResult;
 import io.baku.alchemy.substrate.fsa.Fsa;
 import io.baku.alchemy.substrate.predicates.CharPredicate;
 import io.baku.alchemy.substrate.predicates.ParsePredicate;
@@ -19,7 +11,7 @@ import io.baku.alchemy.substrate.rules.Rule;
 import io.baku.alchemy.substrate.rules.TextRules;
 import io.baku.alchemy.substrate.symbols.Symbol;
 
-public class ParserTest {
+public class JsonTest extends ParserTestBase {
 	private static final ParseContext JSON;
 	static {
 		 final ParsePredicate
@@ -78,34 +70,6 @@ public class ParserTest {
 		         TextRules.keyword("null"));
 	}
 	
-	private static String read(final String resource) throws IOException {
-		return new String(ByteStreams.toByteArray(ParserTest.class.getResourceAsStream(resource)));
-	}
-	
-	private static ParseResult testParse(final ParseContext context, final String resource, final String startSymbol) throws IOException {
-		final ParseResult result = Parser.parse(context, read(resource), startSymbol);
-
-        System.out.println("Errors: " + result.getErrors());
-        System.out.println(result.getStartSymbol().printTree());
-
-        assertEquals(startSymbol, result.getStartSymbol().getType());
-        
-		return result;
-	}
-	
-	private static void testParseSuccessful(final ParseContext context, final String resource,
-			final String startSymbol) throws IOException {
-        final ParseResult result = testParse(context, resource, startSymbol);
-        assertTrue(result.getErrors().isEmpty());
-	}
-	
-	private static void testParseErrors(final ParseContext context, final String resource,
-			final String startSymbol, final String... errors) throws IOException {
-		final ParseResult result = testParse(context, resource, startSymbol);
-		assertEquals(ImmutableList.copyOf(errors),
-				Lists.transform(result.getErrors(), Object::toString));
-	}
-	
 	@Test
 	public void testParseEmptyJson() throws IOException {
 		testParseSuccessful(JSON, "emptyobject.json", "object");
@@ -134,5 +98,11 @@ public class ParserTest {
 	@Test
 	public void testParseObjectMissingValue() throws IOException {
 		testParseErrors(JSON, "objectmissingvalue.json", "object", "Expected value");
+	}
+	
+	@Test
+	public void testParseObjectBadToken() throws IOException {
+		testParseErrors(JSON, "objectbadtoken.json", "object",
+				"Unexpected '\"'", "Unexpected newline", "Expected '\"'");
 	}
 }
