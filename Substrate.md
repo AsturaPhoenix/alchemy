@@ -22,7 +22,7 @@ It is conceivable that one might wish to define custom syntax in two files that 
 
 This is particularly difficult to handle when parsing top-down. Top-down approaches face a similar problem in semantic analysis of programs (e.g. C/C++ prototypes), which is solvable by using symbol tables and multi-pass compilation. However, that does not generalize to the case where the grammar itself may change.
 
-For additive grammar extensions, the pure bottom-up parse is well suited since it is a natural multi-pass parse. However, consider also the pathological input which includes code in extensible language Foo, but at the end retroactively obliterates all syntax rules for Foo (except perhaps the syntax needed to obliterate the rest of the language). Even the bottom-up parser would have trouble with this without discarding any state resulting from having applied the obliterated rules.
+A multi-pass bottom-up parse handles additive grammar extensions easily, but requires special consideration for subtractive grammar extensions. Consider the pathological input which includes code in some extensible language but at the end retroactively obliterates all syntax rules for that language except perhaps the syntax needed to obliterate the rest of the language. The parser would need to somehow discard any state having resulted from applying the obliterated rules.
 
 ###Context hierarchies
 Some parse rules may alter the parse context for any other rules contributing to their production. One example is an indent block in languages like Python or Yaml. Normally, these are handled by the lexer prior to grammatical parsing ([off-side rule](https://en.wikipedia.org/wiki/Off-side_rule)). However, since to maintain maximum flexibility Substrate does not include a tokenization phase, such rules are more easily handled through a parse context stack.
@@ -30,15 +30,33 @@ Some parse rules may alter the parse context for any other rules contributing to
 Pure bottom-up parsing does not handle hierarchical context mutations well, since the natural bottom-up parse may well apply parse rules to deeper scopes before recognizing their parent scopes. Special handling would be required to discard states resulting from such rule applications once the context was modified, which naively results in an unacceptable amount of wasted effort.
 
 ###Fault tolerance
-The goal of a fault-tolerant parser is to offer one or more possible sets of transformations that could fix invalid syntax. This can be approximated in a top-down parser by relatively simple analyses on mismatches between the symbol sequence and pending matches.
+The goal of a fault-tolerant parser is to offer one or more possible sets of transformations that could fix invalid syntax. Accordingly, fault tolerance is often described in terms of error repair. There are three principal forms of errors (see also: [Princeton COS 320 slides](http://www.cs.princeton.edu/courses/archive/spr05/cos320/notes/7-parsing-error.ppt)):
+* found not expected (repair by deletion)
+* expected not found (repair by insertion)
+* mismatch (repair by replacement).
 
-Any backtracking parser can approximate this by allowing the assumption of errors at any point in the symbol sequence. However, as there are three types of principal symbol errors that may be assumed (found not expected, expected not found, and mismatch), this combinatorically grows the search space as more errors need to be assumed. A common way to reduce the search space involves "beacons" that, once produced, cannot be backtracked beyond.
+Any backtracking parser can allow the assumption of errors at any point in the symbol sequence. However, the search space grows combinatorically as more errors need to be assumed, roughly <sub>3<sup>*n*</sup></sub>**C**<sub>*m*</sub>, where *n* is the input sequence length and *m* is the number of errors. One way to mitigate this is to limit the assumption of errors to around the parse failure, reducing *n* ([Burke-Fisher repair](https://en.wikipedia.org/wiki/Burke%E2%80%93Fisher_error_repair)).
+
+Top-down and shift-reduce error recovery leverages beacons or synchronizing tokens that anchor erroneous parses. They can discard input after an error until encountering a synchronizing token, which can be just about any predicate.
 
 ##Design
 Rules…
-* may or may not be retroactive. Retroactive rules reset the scanner to the beginning after production.
-* may alter the parse context before and after their application.
+* may or may not be retroactive in a given scope. Retroactive rules reset the scanner to the beginning of their scope after production.
+* may alter the parse context before and after their application (e.g. to push/pop scope and alter context variables).
 * may rewrite the scanner subsequence they consume.
 * may not apply fully or at all at first. Wherever they get stuck, they are pushed onto a set of pending parses, to be resumed when the failure symbol is changed.
  * Parsing could resume from the furthest branch only, or from the first failure/on all branches, or from the beginning of the match.
  * This failure marking must take into consideration lookahead and lookbehind failures. Lookbehind failures that occur behind any pending rule production do not need to be considered for resumption.
+  
+##Glossary
+* **entropy** - intuitively, the degree of generalization accepted by a predicate. This is calculated as the log of a predicate's match space, where the log is mostly a convenience to allow additive rather than multiplicative manipulations. 
+
+  Entropy is useful as a component of heuristics for comparing the utility of different parse branches.
+
+  The normalization factor (log base) does not matter, though it is convenient to base on the number of Unicode code points such that an any-character predicate has entropy 1. Alternatively it may be useful to normalize such that an error contributes entropy 1 (which is often roughly equivalent since the symbol space usually consists mostly of Unicode code points). Some frequency-based refinement may be warranted as well, so that general matches over rare symbols contribute similar entropy to specific matches over common symbols.
+
+* **predicate** - a Boolean expression that evaluates whether a rule should apply to a symbol subsequence. Predicates have properties of entropy (the degree of generalization accepted) and width (the number of symbols consumed).
+
+* **symbol** - an atomic input unit or concrete syntax tree node, which are equivalent from the perspective of rewrite rules.
+ 
+* **width** (of a predicate) - the number of symbols consumed by the main recognizer of the predicate. This is often the number of symbols that a rule will replace on rewrite. However, predicates may also include zero-width lookahead and lookbehind recognizers, which do not add to width.
