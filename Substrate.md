@@ -61,8 +61,8 @@ The algorithm is roughly a Markov algorithm incorporating some ideas from [GLR](
 
   The normalization factor (log base) does not matter, though it is convenient to base on the number of Unicode code points such that an any-character predicate has entropy 1. Alternatively it may be useful to normalize such that an error contributes entropy 1 (which is often roughly equivalent since the symbol space usually consists mostly of Unicode code points). Some frequency-based refinement may be warranted as well, so that general matches over rare symbols contribute similar entropy to specific matches over common symbols.
 
-* **predicate** - a Boolean expression that evaluates whether a rule should apply to a symbol subsequence. Predicates have properties of entropy (the degree of generalization accepted) and width (the number of symbols consumed).
+* **predicate** - a Boolean expression that evaluates whether a rule should apply to a symbol sequence region. Predicates have properties of entropy (the degree of generalization accepted) and width (the number of symbols consumed). Predicates are applied about a specific location (cursor) in the symbol sequence. Most predicates will consume sequentially from there. However, zero-width lookaround predicates even negative-width predicates are possible as well.
 
 * **symbol** - an atomic input unit or concrete syntax tree node, which are equivalent from the perspective of rewrite rules.
 
-* **width** (of a predicate) - the number of symbols consumed by the main recognizer of the predicate. This is often the number of symbols that a rule will replace on rewrite. However, predicates may also include zero-width lookahead and lookbehind recognizers, which do not add to width.
+* **width** (of a predicate) - the number of symbols consumed by the main recognizer of the predicate. This is the number of symbols forward from the cursor that a rule will replace on rewrite. However, predicates may also include zero-width lookahead and lookbehind recognizers, which do not add to width. Width may be negative.
