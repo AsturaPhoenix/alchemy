@@ -39,7 +39,7 @@ Any backtracking parser can allow the assumption of errors at any point in the s
 
 Top-down and shift-reduce error recovery leverages beacons or synchronizing tokens that anchor erroneous parses. They can discard input after an error until encountering a synchronizing token, which can be just about any predicate.
 
-## Algorithm:
+## Algorithm
 
 The algorithm is roughly a Markov algorithm incorporating some ideas from [GLR](https://en.wikipedia.org/wiki/GLR_parser). It needs to handle rewrite rules but also facilitate hierarchical context modifications. The resulting parse is roughly LL but still bottom-up.
 
