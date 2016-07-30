@@ -1,10 +1,10 @@
 # Relationship to Prior Art
 ## [DMS Software Reengineering Toolkit](https://en.wikipedia.org/wiki/DMS_Software_Reengineering_Toolkit)
-DMS is a toolchain generator to assist with management and porting of large legacy codebases. We want to expose the same functionality as an integrated environment for first-class development rather than porting or post-coding analysis.
+DMS is a toolchain generator to assist with management and porting of large legacy codebases. We want to expose the same functionality, but as an integrated environment for first-class development rather than for porting or post-coding analysis.
 
 As DMS focuses on generating tools to accomplish specific interop tasks, it does not lend itself to operating simultaneously on multiple languages, and I don't think it exposes language extension capability (though it does include DSL tools).
 
-DMS analysis tools include a lot of features that we might want to add to any tooling environment.
+DMS analysis tools include a lot of features that we might want to add to any tooling environment:
 * Flow analysis
 * Range analysis
 * Points-to analysis
